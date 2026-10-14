@@ -14,16 +14,18 @@ class DailyForecast {
 class Weather {
   final double temp, wind;
   final int code;
+  final List<DailyForecast> daily;
   Weather({
     required this.temp,
     required this.wind,
     required this.code,
+    required this.daily,
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
     final c = json['current'];
     final d = json['daily'];
-    final dailyForecasts = List.generate(
+    final days = List.generate(
     (d['time'] as List).length, (i) => DailyForecast(
           date: DateTime.parse(d['time'][i]),
           maxTemperature: d['temperature_2m_max'][i],
@@ -36,6 +38,7 @@ class Weather {
       temp: c['temperature'],
       wind: c['windspeed'],
       code: c['weathercode'],
+      daily: days,
     );
   }
 }
