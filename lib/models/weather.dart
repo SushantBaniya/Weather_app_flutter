@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class DailyForecast {
   final DateTime date;
   final double maxTemperature;
@@ -41,4 +43,23 @@ class Weather {
       daily: days,
     );
   }
+}
+
+
+String describe(int code) {
+  if (code == 0) return 'Clear sky';
+  if (code <= 3) return 'Partly cloudy';
+  if (code <= 48) return 'Fog';
+  if (code <= 67) return 'Rain';
+  if (code <= 77) return 'Snow';
+  if (code <= 82) return 'Showers';
+  return 'Thunderstorm';
+}
+
+IconData iconFor(int code) {
+  if (code == 0) return Icons.wb_sunny;
+  if (code <= 3) return Icons.wb_cloudy;
+  if (code <= 48) return Icons.foggy;
+  if (code <= 82) return Icons.water_drop;
+  return Icons.thunderstorm;
 }
