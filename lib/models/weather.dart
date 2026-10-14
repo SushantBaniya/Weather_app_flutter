@@ -35,9 +35,9 @@ class Weather {
     );
 
     return Weather(
-      temp: c['temperature'],
-      wind: c['windspeed'],
-      code: c['weathercode'],
+      temp: c['temperature_2m'],
+      wind: c['wind_speed_10m'],
+      code: c['weather_code'],
       daily: days,
     );
   }
