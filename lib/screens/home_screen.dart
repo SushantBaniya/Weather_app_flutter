@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../models/weather.dart';
 import '../services/weather_service.dart';
-import 'package:geolocator/geolocator.dart';
 
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,7 +13,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreen extends State<HomeScreen> {
-
+  Weather? weather;
+  bool _isLoading = true;
+  String? _errorMessage;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +36,9 @@ class _HomeScreen extends State<HomeScreen> {
             ),
           ),
           SafeArea(
-            child: Column(children: [Expanded(child: const HeaderSection())]),
+            child: Column(
+              children: [Expanded(child: HeaderSection(weather: weather!))],
+            ),
           ),
           const Center(
             child: Text(
@@ -53,16 +58,46 @@ class _HomeScreen extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void> _location() async {
-      final position = await Geolocator.getCurrentPosition();
-      print(position);
-      final weather = await WeatherService().getWeather(position.latitude, position.longitude);
+    _location();
+  }
+
+  Future<void> _location() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
     }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    final position = await Geolocator.getCurrentPosition();
+    debugPrint('Latitude: ${position.latitude}');
+    debugPrint('Longitude: ${position.longitude}');
+    debugPrint('Position: $position');
+    final weather = await WeatherService().getWeather(
+      position.latitude,
+      position.longitude,
+    );
+    debugPrint('Weather result: $weather');
+    setState(() {
+      this.weather = weather;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
 
 class HeaderSection extends StatelessWidget {
-  const HeaderSection({super.key});
+  final Weather weather;
+  const HeaderSection({super.key, required this.weather});
 
   @override
   Widget build(BuildContext context) {
@@ -93,11 +128,11 @@ class HeaderSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Mostly Sunny',
+                  describe(weather.code),
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
-                Icon(Icons.wb_sunny, color: Colors.yellow, size: 140),
+                Icon(iconFor(weather.code), color: Colors.yellow, size: 140),
               ],
             ),
           ),
