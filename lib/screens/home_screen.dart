@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import '../models/weather.dart';
+import '../services/weather_service.dart';
+import 'package:geolocator/geolocator.dart';
 
-class HomeScreen extends StatelessWidget {
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreen();
+}
+
+class _HomeScreen extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +49,16 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void> _location() async {
+      final position = await Geolocator.getCurrentPosition();
+      print(position);
+      final weather = await WeatherService().getWeather(position.latitude, position.longitude);
+    }
+  }
 }
 
 class HeaderSection extends StatelessWidget {
@@ -49,7 +69,7 @@ class HeaderSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -69,13 +89,15 @@ class HeaderSection extends StatelessWidget {
           const SizedBox(height: 20),
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   'Mostly Sunny',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
+                const SizedBox(height: 8),
+                Icon(Icons.wb_sunny, color: Colors.yellow, size: 140),
               ],
             ),
           ),
