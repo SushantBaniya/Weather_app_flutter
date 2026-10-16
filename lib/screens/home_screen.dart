@@ -315,7 +315,7 @@ class DailyForecast extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Day ${index + 1}',
+                      '${weather.daily[index].date.day}/${weather.daily[index].date.month}',
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
