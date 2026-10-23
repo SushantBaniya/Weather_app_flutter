@@ -38,6 +38,7 @@ dependencies:
   geolocator: ^14.1.1
   flutter_svg: ^2.3.0
   lottie: ^3.6.1
+  flutter_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:

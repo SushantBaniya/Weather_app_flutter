@@ -1,24 +1,62 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/weather.dart';
-import '../services/weather_service.dart';
+import '../providers/weather_provider.dart';
 
 import 'package:geolocator/geolocator.dart';
 
-class HomeScreen extends StatefulWidget {
+final permisionProvider = FutureProvider<Position>((ref) async {
+  final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    throw Exception('Location services are disabled.');
+  }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      throw Exception('Location permissions are denied');
+    }
+  }
+  if (permission == LocationPermission.deniedForever) {
+    throw Exception(
+      'Location permissions are permanently denied, we cannot request permissions.',
+    );
+  }
+
+  final location = await Geolocator.getCurrentPosition();
+  return location;
+});
+
+final locationProvider = FutureProvider<Weather>((ref) async {
+  final position = ref.watch(permisionProvider.future);
+  final weatherService = ref.watch(weatherServiceProvider);
+
+  final weather = await position.then(
+    (pos) => weatherService.getWeather(pos.latitude, pos.longitude),
+  );
+  if (weather == null) {
+    throw Exception('Failed to fetch weather data');
+  }
+  return weather;
+});
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreen();
+  ConsumerState<HomeScreen> createState() => _HomeScreen();
 }
 
-class _HomeScreen extends State<HomeScreen> {
+class _HomeScreen extends ConsumerState<HomeScreen> {
   Weather? weather;
   int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
+    final weatherAsyncValue = ref.watch(locationProvider);
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -37,76 +75,38 @@ class _HomeScreen extends State<HomeScreen> {
             ),
           ),
           SafeArea(
-            child: weather == null
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                : Column(
-                    children: [
-                      HeaderSection(weather: weather!),
-                      MiddleSection(weather: weather!),
-                      OtherCity(weather: weather!),
-                      DailyForecast(weather: weather!),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 12,
-                        child: SafeArea(
-                          top: false,
-                          child: WeatherBottomNavBar(
-                            selectedIndex: _selectedIndex,
-                            onItemSelected: (index) {
-                              setState(() {
-                                _selectedIndex = index;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            child: weatherAsyncValue.when(
+              data: (data) {
+                weather = data;
+                return Column(
+                  children: [
+                    HeaderSection(weather: data),
+                    MiddleSection(weather: data),
+                    OtherCity(weather: data),
+                    DailyForecast(weather: data),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text(error.toString())),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: WeatherBottomNavBar(
+              selectedIndex: _selectedIndex,
+              onItemSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+            ),
           ),
         ],
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _location();
-  }
-
-  Future<void> _location() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-    final position = await Geolocator.getCurrentPosition();
-    debugPrint('Latitude: ${position.latitude}');
-    debugPrint('Longitude: ${position.longitude}');
-    debugPrint('Position: $position');
-    final weather = await WeatherService().getWeather(
-      position.latitude,
-      position.longitude,
-    );
-    debugPrint('Weather result: $weather');
-    setState(() {
-      this.weather = weather;
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
 
