@@ -8,6 +8,8 @@ import '../providers/weather_provider.dart';
 
 import 'package:geolocator/geolocator.dart';
 
+import 'forecast.dart';
+
 final permisionProvider = FutureProvider<Position>((ref) async {
   final serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
@@ -146,7 +148,7 @@ class HeaderSection extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 12),
               ),
               const SizedBox(height: 8),
-              Icon(iconFor(weather.code), color: Colors.yellow, size: 140),
+              Icon(iconFor(weather.code), color: const Color.fromARGB(255, 222, 221, 214), size: 140),
             ],
           ),
         ],
@@ -260,7 +262,7 @@ class OtherCity extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    Icon(iconFor(weather.code), color: Colors.yellow, size: 40),
+                    Icon(iconFor(weather.code), color: const Color.fromARGB(255, 221, 220, 216), size: 40),
                     const SizedBox(height: 8),
                     Text(
                       '${weather.temp.toStringAsFixed(0)}°C',
@@ -286,12 +288,30 @@ class DailyForecast extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Daily Forecast:',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
-            fontSize: 18,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Daily Forecast:',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ForecastScreen()),
+                );
+              },
+              child: const Text(
+                '7-day forecast',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
+          ],
         ),
         SizedBox(
           height: 150,
@@ -321,7 +341,7 @@ class DailyForecast extends StatelessWidget {
                     const SizedBox(height: 8),
                     Icon(
                       iconFor(weather.daily[index].code),
-                      color: Colors.yellow,
+                      color: const Color.fromARGB(255, 245, 244, 238),
                       size: 40,
                     ),
                     const SizedBox(height: 8),
