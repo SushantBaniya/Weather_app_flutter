@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'dart:ui';
+
 import '../models/weather.dart';
 import '../providers/city_service_provider.dart';
 import '../providers/weather_provider.dart';
-  
+
 import '../services/weather_service.dart';
 
 final cityWeatherProvider = FutureProvider<Weather?>((ref) async {
@@ -20,50 +22,67 @@ class ForecastScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cityWeather = ref.watch(cityWeatherProvider);
+    final city = ref.watch(cityServiceProvider);
+
+    // Decide what to show in the results area.
+    // The weather provider is watched ONLY when a city exists.
+    Widget results;
+
+    if (city.isEmpty) {
+      results = const Center(
+        child: Text(
+          'Please enter a city name',
+          style: TextStyle(color: Colors.white, fontSize: 24),
+        ),
+      );
+    } else {
+      final cityWeather = ref.watch(cityWeatherProvider);
+
+      results = cityWeather.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Text(
+            'Error: $error',
+            style: const TextStyle(color: Colors.white, fontSize: 24),
+          ),
+        ),
+        data: (weather) {
+          if (weather == null) {
+            return const Center(
+              child: Text(
+                'City not found',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            );
+          }
+          return Column(children: [MiddleSection(weather: weather)]);
+        },
+      );
+    }
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset('assets/images/clouds.png', fit: BoxFit.cover),
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
                   Color.fromRGBO(0, 0, 0, 0.25),
                   Color.fromRGBO(0, 0, 0, 0.7),
-                  Colors.transparent,
                 ],
               ),
             ),
           ),
           SafeArea(
-            child: cityWeather.when(
-              data: (weather) {
-                if (weather == null) {
-                  return const Center(
-                    child: Text(
-                      'City not found',
-                      style: TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                  );
-                }
-                return Column(
-                  children: [
-                    const TopSection(),
-                    MiddleSection(weather: weather),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Text(
-                  'Error: $error',
-                  style: const TextStyle(color: Colors.white, fontSize: 24),
-                ),
-              ),
+            child: Column(
+              children: [
+                const TopSection(), // always visible
+                Expanded(child: results),
+              ],
             ),
           ),
         ],
@@ -90,7 +109,6 @@ class _TopSectionState extends ConsumerState<TopSection> {
 
   @override
   Widget build(BuildContext context) {
-    ;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -114,6 +132,9 @@ class _TopSectionState extends ConsumerState<TopSection> {
               backgroundColor: WidgetStatePropertyAll(
                 Colors.white.withValues(alpha: 0.10),
               ),
+              textStyle: const WidgetStatePropertyAll<TextStyle>(
+                TextStyle(color: Colors.white),
+              ),
               onSubmitted: (value) {
                 ref.read(cityServiceProvider.notifier).setCity(value);
               },
@@ -134,7 +155,6 @@ class MiddleSection extends ConsumerStatefulWidget {
 }
 
 class _MiddleSectionState extends ConsumerState<MiddleSection> {
-
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(cityServiceProvider);
@@ -185,8 +205,20 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
                                 color: Colors.white,
                               ),
                             ),
+                            Text(
+                              '${describe(weather.daily[index].code)}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Icon(
+                              iconFor(weather.daily[index].code),
+                              color: Colors.white,
+                              size: 32,
+                            ),
                           ],
-                        )
+                        ),
                       ),
                     ),
                   ),
@@ -195,6 +227,57 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+class WeatherBottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onItemSelected;
+
+  const WeatherBottomNavBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemSelected,
+  });
+
+  static const items = [
+    Icons.home_rounded,
+    Icons.location_on_rounded,
+    Icons.calendar_month_rounded,
+    Icons.settings_rounded,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(items.length, (index) {
+          final isSelected = selectedIndex == index;
+
+          return IconButton(
+            onPressed: () => onItemSelected(index),
+            icon: Icon(
+              items[index],
+              color: isSelected ? Colors.white : Colors.white60,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: isSelected
+                  ? Colors.white.withValues(alpha: 0.16)
+                  : Colors.transparent,
+            ),
+          );
+        }),
       ),
     );
   }
