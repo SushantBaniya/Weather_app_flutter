@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/city_service_provider.dart';
 
 class ForecastScreen extends ConsumerWidget {
   const ForecastScreen({super.key});
@@ -27,7 +28,7 @@ class ForecastScreen extends ConsumerWidget {
           SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
-              children: [TopSection()],
+              children: [TopSection(),MiddleSection()],
             ),
           ),
         ],
@@ -45,8 +46,15 @@ class TopSection extends ConsumerStatefulWidget {
 
 class _TopSectionState extends ConsumerState<TopSection> {
    final TextEditingController _controller = TextEditingController();
+
+   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -68,12 +76,39 @@ class _TopSectionState extends ConsumerState<TopSection> {
                 ),
               ],
               backgroundColor: WidgetStatePropertyAll( Colors.white.withValues(alpha: 0.10)),
-              onChanged: (value) {
-                /* live typing */
-              },
               onSubmitted: (value) {
-                /* user pressed enter/search */
+               ref.read(cityServiceProvider.notifier).setCity(value);
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MiddleSection extends ConsumerStatefulWidget {
+  const MiddleSection({super.key});
+
+  @override
+  ConsumerState<MiddleSection> createState() => _MiddleSectionState();
+}
+
+class _MiddleSectionState extends ConsumerState<MiddleSection> {
+  @override
+  Widget build(BuildContext context) {
+    final city = ref.watch(cityServiceProvider);
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            'Forecast for $city',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ],
