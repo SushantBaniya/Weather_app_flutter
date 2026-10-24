@@ -79,7 +79,6 @@ class _HomeScreen extends ConsumerState<HomeScreen> {
           SafeArea(
             child: weatherAsyncValue.when(
               data: (data) {
-                weather = data;
                 return Column(
                   children: [
                     HeaderSection(weather: data),

@@ -5,11 +5,11 @@ import '../models/weather.dart';
 
 class CityNotifier extends Notifier<String> {
   @override
-  build()  {
+  String build()  {
     return '';
   }
 
-  String setCity(String city)  =>
+  void setCity(String city)  =>
     state = city;
 }
 
