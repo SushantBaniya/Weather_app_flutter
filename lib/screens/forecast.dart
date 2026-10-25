@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'dart:ui';
 
+import '../screens/home_screen.dart';
+
 import '../models/weather.dart';
 import '../providers/city_service_provider.dart';
 import '../providers/weather_provider.dart';
-
-import '../services/weather_service.dart';
 
 final cityWeatherProvider = FutureProvider<Weather?>((ref) async {
   final cityName = ref.watch(cityServiceProvider);
@@ -201,21 +201,26 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
                             Text(
                               '${weather.daily[index].maxTemperature.toStringAsFixed(0)}°C',
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 38,
                                 color: Colors.white,
                               ),
                             ),
-                            Text(
-                              '${describe(weather.daily[index].code)}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.white,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                '${describe(weather.daily[index].code)}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                             Icon(
                               iconFor(weather.daily[index].code),
                               color: Colors.white,
-                              size: 32,
+                              size: 40,
                             ),
                           ],
                         ),
@@ -231,7 +236,6 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
     );
   }
 }
-
 
 class WeatherBottomNavBar extends StatelessWidget {
   final int selectedIndex;

@@ -54,11 +54,17 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreen extends ConsumerState<HomeScreen> {
-  Weather? weather;
   int _selectedIndex = 0;
+
+  final List<Widget> _pages = const [
+    HomeContent(),       // tab 0: home
+    ForecastScreen(),    // tab 1: location / search
+    Placeholder(),       // tab 2: calendar (replace later)
+    Placeholder(),       // tab 3: settings (replace later)
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final weatherAsyncValue = ref.watch(locationProvider);
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -77,36 +83,51 @@ class _HomeScreen extends ConsumerState<HomeScreen> {
             ),
           ),
           SafeArea(
-            child: weatherAsyncValue.when(
-              data: (data) {
-                return Column(
-                  children: [
-                    HeaderSection(weather: data),
-                    MiddleSection(weather: data),
-                    OtherCity(weather: data),
-                    DailyForecast(weather: data),
-                  ],
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text(error.toString())),
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
             ),
           ),
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: WeatherBottomNavBar(
-              selectedIndex: _selectedIndex,
-              onItemSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-              },
+            child: SafeArea(
+              top: false,
+              child: WeatherBottomNavBar(
+                selectedIndex: _selectedIndex,
+                onItemSelected: (index) =>
+                    setState(() => _selectedIndex = index),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class HomeContent extends ConsumerWidget {
+  const HomeContent({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weatherAsyncValue = ref.watch(locationProvider);
+
+    return weatherAsyncValue.when(
+      data: (data) => SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100), // space for the nav bar
+        child: Column(
+          children: [
+            HeaderSection(weather: data),
+            MiddleSection(weather: data),
+            OtherCity(weather: data),
+            DailyForecast(weather: data),
+          ],
+        ),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text(error.toString())),
     );
   }
 }
