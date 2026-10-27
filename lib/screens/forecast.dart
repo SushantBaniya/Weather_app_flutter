@@ -113,10 +113,6 @@ class _TopSectionState extends ConsumerState<TopSection> {
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
           const SizedBox(width: 8),
           Expanded(
             child: SearchBar(
@@ -205,18 +201,27 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
                                 color: Colors.white,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: Text(
-                                '${describe(weather.daily[index].code)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
+
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${describe(weather.daily[index].code)}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  '${weather.daily[index].date.day}/${weather.daily[index].date.month}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
+
                             Icon(
                               iconFor(weather.daily[index].code),
                               color: Colors.white,
@@ -232,56 +237,6 @@ class _MiddleSectionState extends ConsumerState<MiddleSection> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class WeatherBottomNavBar extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onItemSelected;
-
-  const WeatherBottomNavBar({
-    super.key,
-    required this.selectedIndex,
-    required this.onItemSelected,
-  });
-
-  static const items = [
-    Icons.home_rounded,
-    Icons.location_on_rounded,
-    Icons.calendar_month_rounded,
-    Icons.settings_rounded,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final isSelected = selectedIndex == index;
-
-          return IconButton(
-            onPressed: () => onItemSelected(index),
-            icon: Icon(
-              items[index],
-              color: isSelected ? Colors.white : Colors.white60,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: isSelected
-                  ? Colors.white.withValues(alpha: 0.16)
-                  : Colors.transparent,
-            ),
-          );
-        }),
       ),
     );
   }

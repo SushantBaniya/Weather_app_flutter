@@ -24,7 +24,7 @@ class Weather {
     required this.daily,
   });
 
-  factory Weather.fromJson(Map<String, dynamic> json) {
+  factory Weather.fromJson(Map<String, dynamic> json) { // manual serialization
     final c = json['current'];
     final d = json['daily'];
     final days = List.generate(
